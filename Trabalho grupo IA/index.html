@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voninga — Rotas Seguras</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #333; line-height: 1.6; }
+        a { text-decoration: none; color: inherit; }
+
+        /* TOPO */
+        .topo { background: #0c2a52; padding: 12px 0; border-bottom: 3px solid #fbc02d; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .topo .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 900; font-size: 22px; }
+        .logo i { color: #fbc02d; font-size: 1.8rem; }
+        
+        .btn-admin-topo { background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 6px; }
+        .btn-admin-topo:hover { background: #fbc02d; color: #0c2a52; border-color: #fbc02d; }
+
+        /* HERO */
+        .hero { position: relative; height: 240px; background: linear-gradient(135deg, #061a33 0%, #0c2a52 60%, #1a4a7a 100%); display: flex; align-items: center; justify-content: center; text-align: center; }
+        .hero-conteudo { position: relative; z-index: 2; max-width: 700px; padding: 0 24px; }
+        .hero-conteudo h1 { font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 12px; }
+        .hero-conteudo h1 span { color: #fbc02d; }
+        .hero-conteudo p { font-size: 1rem; color: rgba(255,255,255,0.85); }
+
+        /* ÁREA PRINCIPAL */
+        .area-principal { padding: 24px 0 60px; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+        
+        .titulo-secao { text-align: center; margin-bottom: 20px; }
+        .titulo-secao h2 { font-size: 1.6rem; color: #0c2a52; font-weight: 800; }
+        .titulo-secao h2 span { color: #fbc02d; }
+
+        .layout-duplo { display: grid; grid-template-columns: 1fr 400px; gap: 20px; }
+        @media (max-width: 850px) { .layout-duplo { grid-template-columns: 1fr; } }
+
+        /* MAPA VISUAL (CSS PURO - NÃO TRAVA) */
+        .mapa-visual {
+            background: #e8f4f8;
+            border-radius: 16px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.1);
+            padding: 20px;
+            position: relative;
+            min-height: 500px;
+            overflow: hidden;
+            border: 2px solid #cce;
+        }
+        
+        .mapa-titulo { text-align: center; font-weight: 800; color: #0c2a52; margin-bottom: 20px; font-size: 1.2rem; }
+        
+        .rota-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .passo-rota {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 5px solid #888;
+            transition: 0.3s;
+        }
+        .passo-rota.aberta { border-left-color: #2e7d32; }
+        .passo-rota.alerta { border-left-color: #fbc02d; background: #fff9e6; }
+        .passo-rota.cortada { border-left-color: #c62828; background: #ffebee; opacity: 0.7; }
+
+        .passo-info { flex: 1; }
+        .passo-nomes { font-weight: 700; color: #0c2a52; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        .passo-nomes i { color: #fbc02d; font-size: 12px; }
+        .passo-dist { font-size: 13px; color: #666; margin-top: 2px; }
+        
+        .passo-status {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+        .status-aberta { background: #e8f5e9; color: #2e7d32; }
+        .status-alerta { background: #fff9e6; color: #b07d00; }
+        .status-cortada { background: #ffebee; color: #c62828; }
+
+        .seta-baixo { text-align: center; color: #aaa; font-size: 16px; margin: -5px 0; }
+
+        /* PAINEL LATERAL */
+        .painel-lateral { display: flex; flex-direction: column; gap: 16px; }
+        .cartao { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
+        .cartao h3 { font-size: 1rem; color: #0c2a52; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid #fbc02d; display: flex; align-items: center; gap: 8px; }
+        
+        .campo { margin-bottom: 12px; }
+        .campo label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 4px; }
+        .campo select, .campo input, .campo textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: inherit; font-size: 14px; outline: none; background: #fafafa; }
+        .campo select:focus, .campo input:focus, .campo textarea:focus { border-color: #fbc02d; background: #fff; }
+        .campo textarea { resize: vertical; min-height: 60px; }
+
+        .btn-calcular { width: 100%; padding: 16px; background: #0c2a52; color: #fff; border: none; border-radius: 10px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-calcular:hover { background: #fbc02d; color: #0c2a52; }
+        .btn-socorro { width: 100%; padding: 14px; background: #d32f2f; color: #fff; border: none; border-radius: 10px; font-weight: 800; font-size: 15px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+        .btn-socorro:hover { background: #b71c1c; }
+
+        /* ODÓMETRO (PAINEL DE RESULTADO) */
+        .cartao-odometro { display: none; border-left: 5px solid #2e7d32; }
+        .cartao-odometro.ativo { display: block; animation: subir 0.3s ease; }
+        @keyframes subir { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .odometro-display {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 32px;
+            font-weight: 900;
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 15px rgba(0,255,0,0.2);
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
+        .odometro-display span { font-size: 18px; color: #fff; }
+        
+        .resultado-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .resultado-item:last-child { border-bottom: none; }
+        .resultado-item .valor { font-weight: 700; color: #0c2a52; }
+
+        /* MODAIS */
+        .modal-fundo { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999999; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-fundo.aberto { display: flex; }
+        .modal-caixa { background: #fff; border-radius: 16px; padding: 24px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-fechar { position: absolute; top: 10px; right: 14px; font-size: 24px; color: #999; background: none; border: none; cursor: pointer; }
+        .modal-caixa h2 { font-size: 1.2rem; color: #0c2a52; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .btn-primario { width: 100%; padding: 12px; background: #0c2a52; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        
+        .admin-lista { margin-top: 15px; max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; }
+        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 12px; }
+        .admin-item button { padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; font-size: 11px; font-weight: 600; }
+        .btn-abrir { background: #e8f5e9; color: #2e7d32; }
+        .btn-alerta { background: #fff9e6; color: #f57f17; }
+        .btn-cortar { background: #ffebee; color: #c62828; }
+        .btn-apagar { background: #ffebee; color: #c62828; }
+
+        /* NOTIFICAÇÃO */
+        .notif { position: fixed; top: 80px; right: 20px; background: #0c2a52; color: #fff; padding: 12px 18px; border-radius: 10px; z-index: 999999; display: none; align-items: center; gap: 8px; border-left: 4px solid #fbc02d; font-size: 13px; }
+        .notif.ativo { display: flex; }
+        .notif.sucesso { border-left-color: #2e7d32; }
+        .notif.erro { border-left-color: #d32f2f; }
+
+        /* RODAPÉ */
+        .rodape { background: #061a33; color: rgba(255,255,255,0.6); padding: 20px 0; margin-top: 40px; text-align: center; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="notif" id="notif"><i class="fas fa-info-circle"></i><span id="notif-texto"></span></div>
+
+<!-- TOPO -->
+<header class="topo">
+    <div class="container">
+        <div class="logo"><i class="fas fa-route"></i> Voninga</div>
+        <button class="btn-admin-topo" onclick="abrirAdmin()"><i class="fas fa-lock"></i> Administrador</button>
+    </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-conteudo">
+        <h1>Rotas Seguras para <span>Manhiça e Arredores</span></h1>
+        <p>Sistema inteligente de navegação. Encontre o caminho mais seguro, rápido e veja os quilómetros reais.</p>
+    </div>
+</section>
+
+<!-- ÁREA PRINCIPAL -->
+<main class="area-principal">
+    <div class="container">
+        <div class="titulo-secao"><h2>Encontre o <span>caminho seguro</span></h2></div>
+
+        <div class="layout-duplo">
+            <!-- MAPA VISUAL (ROTAS) -->
+            <div class="mapa-visual" id="mapa-visual">
+                <div class="mapa-titulo"><i class="fas fa-map"></i> Visualização do Percurso</div>
+                <div class="rota-visual" id="rota-visual">
+                    <div style="text-align: center; color: #666; margin-top: 50px;">
+                        <i class="fas fa-search-location" style="font-size: 40px; color: #ccc; margin-bottom: 10px;"></i>
+                        <p>Selecione a origem e o destino para ver o caminho.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL LATERAL -->
+            <div class="painel-lateral">
+                <div class="cartao">
+                    <h3><i class="fas fa-map-marked-alt"></i> Escolha o percurso</h3>
+                    <div class="campo">
+                        <label><i class="fas fa-circle" style="color:#2e7d32; font-size:8px;"></i> De onde parte?</label>
+                        <select id="origem"><option value="">Escolha...</option></select>
+                    </div>
+                    <div class="campo">
+                        <label><i class="fas fa-circle" style="color:#d32f2f; font-size:8px;"></i> Para onde vai?</label>
+                        <select id="destino"><option value="">Escolha...</option></select>
+                    </div>
+                    <button class="btn-calcular" onclick="calcular()"><i class="fas fa-route"></i> VER CAMINHO E KM</button>
+                </div>
+
+                <div class="cartao" style="border: 2px solid #d32f2f;">
+                    <h3><i class="fas fa-bell" style="color: #d32f2f;"></i> Pedido de Socorro</h3>
+                    <div class="campo">
+                        <input type="text" id="socorro-local" placeholder="Onde está?">
+                    </div>
+                    <div class="campo">
+                        <textarea id="socorro-msg" placeholder="Mensagem..."></textarea>
+                    </div>
+                    <button class="btn-socorro" onclick="enviarSocorro()"><i class="fas fa-paper-plane"></i> PEDIR SOCORRO</button>
+                </div>
+
+                <!-- ODÓMETRO E RESULTADO -->
+                <div class="cartao cartao-odometro" id="cartao-resultado">
+                    <h3><i class="fas fa-tachometer-alt" style="color:#2e7d32;"></i> Odómetro da Rota</h3>
+                    <div class="odometro-display" id="odometro-km">0.0 <span>km</span></div>
+                    <div class="resultado-item">
+                        <span class="label">Tempo estimado</span>
+                        <span class="valor" id="res-tempo">—</span>
+                    </div>
+                    <div class="resultado-item">
+                        <span class="label">Estado da via</span>
+                        <span class="valor" id="res-estado">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="rodape">
+    <p>Sistema inteligente de navegação para unidades sanitárias e centros de abrigo durante a época de cheias. Encontre o caminho mais seguro e rápido.</p>
+</footer>
+
+<!-- MODAIS ADMIN -->
+<div class="modal-fundo" id="modal-login">
+    <div class="modal-caixa">
+        <button class="modal-fechar" onclick="fecharAdmin()">&times;</button>
+        <h2><i class="fas fa-user-shield"></i> Acesso Administrador</h2>
+        <div class="campo">
+            <input type="password" id="admin-senha" placeholder="Senha..." onkeypress="if(event.key==='Enter')entrarAdmin()">
+        </div>
+        <button class="btn-primario" onclick="entrarAdmin()" style="margin-top: 10px;">Entrar</button>
+    </div>
+</div>
+
+<div class="modal-fundo" id="modal-painel">
+    <div class="modal-caixa">
+        <button class="modal-fechar" onclick="fecharPainel()">&times;</button>
+        <h2><i class="fas fa-cogs"></i> Painel de Gestão</h2>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+            <button class="btn-abrir" onclick="adminGerirCortes()" style="flex:1;">Estradas</button>
+            <button class="btn-alerta" onclick="adminGerirAbrigos()" style="flex:1;">Abrigos</button>
+            <button class="btn-cortar" onclick="adminGerirSocorros()" style="flex:1;">Socorros</button>
+        </div>
+        <button class="btn-cortar" onclick="adminSair()" style="width: 100%; margin-bottom: 15px;">Sair</button>
+        <div id="admin-conteudo"></div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// DADOS
+// ============================================================
+let nos = {
+    'manhica_sede': { nome: 'Manhiça-Sede', tipo: 'localidade' },
+    'bairro_3': { nome: 'Bairro 3', tipo: 'localidade' },
+    'bairro_5': { nome: 'Bairro 5', tipo: 'localidade' },
+    'maciana': { nome: 'Maciana', tipo: 'localidade' },
+    '3_fevereiro': { nome: '3 de Fevereiro', tipo: 'localidade' },
+    'manchiana': { nome: 'Manchiana', tipo: 'localidade' },
+    'taninga': { nome: 'Taninga', tipo: 'localidade' },
+    'maluana': { nome: 'Maluana', tipo: 'localidade' },
+    'calanga': { nome: 'Calanga', tipo: 'localidade' },
+    'ilha_josina': { nome: 'Ilha Josina', tipo: 'localidade' },
+    'xinavane': { nome: 'Xinavane', tipo: 'localidade' },
+    'macia': { nome: 'Macia', tipo: 'localidade' },
+    'magude': { nome: 'Magude', tipo: 'localidade' },
+    'gaza_chokwe': { nome: 'Chókwè (Gaza)', tipo: 'localidade' },
+    'gaza_bilene': { nome: 'Bilene (Gaza)', tipo: 'localidade' },
+    
+    'hospital_distrital': { nome: 'Hospital Manhiça', tipo: 'hospital' },
+    'cs_maluana': { nome: 'CS Maluana', tipo: 'hospital' },
+    'cs_xinavane': { nome: 'CS Xinavane', tipo: 'hospital' },
+    'cs_ilha_josina': { nome: 'CS Ilha Josina', tipo: 'hospital' },
+    'hospital_macia': { nome: 'Hospital Macia', tipo: 'hospital' },
+    'hospital_magude': { nome: 'CS Magude', tipo: 'hospital' },
+
+    'escola_manhica': { nome: 'Abrigo Manhiça', tipo: 'abrigo', ativo: true },
+    'escola_xinavane': { nome: 'Abrigo Xinavane', tipo: 'abrigo', ativo: true },
+    'escola_calanga': { nome: 'Abrigo Calanga', tipo: 'abrigo', ativo: true },
+    'centro_reassentamento_1': { nome: 'Reassentamento Maciana', tipo: 'abrigo', ativo: true },
+    'heliporto_salvacao': { nome: 'Heliporto N1', tipo: 'abrigo', ativo: true }
+};
+
+const arestas = [
+    { de: 'manhica_sede', para: 'hospital_distrital', dist: 1.5 },
+    { de: 'manhica_sede', para: 'bairro_3', dist: 2.0 },
+    { de: 'manhica_sede', para: 'bairro_5', dist: 2.5 },
+    { de: 'manhica_sede', para: 'escola_manhica', dist: 0.8 },
+    { de: 'manhica_sede', para: 'maciana', dist: 4.0 },
+    { de: 'manhica_sede', para: 'xinavane', dist: 12.0 },
+    { de: 'manhica_sede', para: '3_fevereiro', dist: 5.0 },
+    { de: 'manhica_sede', para: 'ilha_josina', dist: 8.0 },
+    { de: 'manhica_sede', para: 'calanga', dist: 15.0 },
+    { de: 'bairro_3', para: 'hospital_distrital', dist: 1.5 },
+    { de: 'bairro_5', para: 'hospital_distrital', dist: 2.0 },
+    { de: 'bairro_5', para: 'ilha_josina', dist: 7.0 },
+    { de: '3_fevereiro', para: 'manchiana', dist: 3.0 },
+    { de: '3_fevereiro', para: 'maluana', dist: 10.0 },
+    { de: 'maciana', para: '3_fevereiro', dist: 2.5 },
+    { de: 'maciana', para: 'centro_reassentamento_1', dist: 1.0 },
+    { de: 'maluana', para: 'cs_maluana', dist: 1.0 },
+    { de: 'xinavane', para: 'cs_xinavane', dist: 1.0 },
+    { de: 'xinavane', para: 'escola_xinavane', dist: 0.5 },
+    { de: 'xinavane', para: 'taninga', dist: 5.0 },
+    { de: 'ilha_josina', para: 'cs_ilha_josina', dist: 0.5 },
+    { de: 'taninga', para: 'ilha_josina', dist: 6.0 },
+    { de: 'calanga', para: 'escola_calanga', dist: 0.6 },
+    { de: 'hospital_distrital', para: 'heliporto_salvacao', dist: 0.5 },
+    { de: 'xinavane', para: 'macia', dist: 45.0 },
+    { de: 'macia', para: 'hospital_macia', dist: 2.0 },
+    { de: 'manhica_sede', para: 'magude', dist: 55.0 },
+    { de: 'magude', para: 'hospital_magude', dist: 1.5 },
+    { de: 'macia', para: 'gaza_chokwe', dist: 60.0 },
+    { de: 'macia', para: 'gaza_bilene', dist: 50.0 },
+    { de: 'maluana', para: 'macia', dist: 35.0 }
+];
+
+let estradasCortadas = [];
+let estradasAlerta = [];
+let pedidosSocorro = [];
+let adminLogado = false;
+
+// ============================================================
+// INICIALIZAÇÃO (Rápida)
+// ============================================================
+window.onload = () => {
+    const selOrigem = document.getElementById('origem');
+    const selDestino = document.getElementById('destino');
+    
+    Object.entries(nos).forEach(([id, n]) => {
+        selOrigem.innerHTML += `<option value="${id}">${n.nome}</option>`;
+        selDestino.innerHTML += `<option value="${id}">${n.nome}</option>`;
+    });
+};
+
+// ============================================================
+// A* (Cálculo Instantâneo)
+// ============================================================
+function aEstrela(origem, destino) {
+    const grafo = {};
+    Object.keys(nos).forEach(id => grafo[id] = []);
+    
+    arestas.forEach((a, i) => {
+        if (estradasCortadas.includes(i)) return;
+        if (nos[a.de].tipo === 'abrigo' && !nos[a.de].ativo) return;
+        if (nos[a.para].tipo === 'abrigo' && !nos[a.para].ativo) return;
+        
+        grafo[a.de].push({ no: a.para, custo: a.dist, idx: i });
+        grafo[a.para].push({ no: a.de, custo: a.dist, idx: i });
+    });
+
+    const abertos = [{ no: origem, f: 0, g: 0 }];
+    const veioDe = {};
+    const g = { [origem]: 0 };
+    const visitados = new Set();
+
+    while (abertos.length) {
+        abertos.sort((a, b) => a.f - b.f);
+        const { no: atual } = abertos.shift();
+        if (visitados.has(atual)) continue;
+        visitados.add(atual);
+
+        if (atual === destino) {
+            const caminho = [];
+            let c = atual;
+            while (c) {
+                caminho.unshift(c);
+                c = veioDe[c];
+            }
+            return { caminho, custo: g[atual] };
+        }
+
+        for (const v of grafo[atual] || []) {
+            const tentG = g[atual] + v.custo;
+            if (!g[v.no] || tentG < g[v.no]) {
+                g[v.no] = tentG;
+                veioDe[v.no] = atual;
+                abertos.push({ no: v.no, g: tentG, f: tentG + 1 }); // Heurística simples para ser rápido
+            }
+        }
+    }
+    return null;
+}
+
+// ============================================================
+// CALCULAR E DESENHAR O "ODÓMETRO"
+// ============================================================
+function calcular() {
+    const origem = document.getElementById('origem').value;
+    const destino = document.getElementById('destino').value;
+    const painel = document.getElementById('rota-visual');
+
+    if (!origem || !destino) { alert('Escolha origem e destino.'); return; }
+    if (origem === destino) { alert('Origem e destino iguais.'); return; }
+
+    const resultado = aEstrela(origem, destino);
+
+    if (!resultado) {
+        painel.innerHTML = `<div style="text-align: center; color: #d32f2f; padding: 20px;">
+            <i class="fas fa-times-circle" style="font-size: 40px; margin-bottom: 10px;"></i>
+            <h3>Sem caminho disponível</h3>
+            <p>As estradas estão bloqueadas. Contacte as autoridades.</p>
+        </div>`;
+        document.getElementById('cartao-resultado').classList.remove('ativo');
+        return;
+    }
+
+    // Atualizar Odómetro
+    document.getElementById('cartao-resultado').classList.add('ativo');
+    document.getElementById('odometro-km').innerHTML = `${resultado.custo.toFixed(1)} <span>km</span>`;
+    
+    // Tempo estimado (média 40km/h)
+    const minutos = Math.round((resultado.custo / 40) * 60);
+    document.getElementById('res-tempo').textContent = minutos < 60 ? `${minutos} minutos` : `${Math.floor(minutos/60)}h ${minutos%60}min`;
+
+    // Desenhar as "linhas" da rota no mapa visual
+    painel.innerHTML = '';
+    let algumCortado = false;
+    let algumAlerta = false;
+
+    resultado.caminho.forEach((noAtual, index) => {
+        if (index === resultado.caminho.length - 1) return; // O último nó não tem próxima estrada
+
+        const proximoNo = resultado.caminho[index + 1];
+        
+        // Encontrar a aresta correspondente
+        const arestaIdx = arestas.findIndex(a => (a.de === noAtual && a.para === proximoNo) || (a.para === noAtual && a.de === proximoNo));
+        const aresta = arestas[arestaIdx];
+
+        let statusClasse = 'aberta';
+        let statusTexto = 'Aberta';
+        
+        if (estradasCortadas.includes(arestaIdx)) { statusClasse = 'cortada'; statusTexto = 'Cortada'; algumCortado = true; }
+        else if (estradasAlerta.includes(arestaIdx)) { statusClasse = 'alerta'; statusTexto = 'Alerta'; algumAlerta = true; }
+
+        painel.innerHTML += `
+            <div class="passo-rota ${statusClasse}">
+                <div class="passo-info">
+                    <div class="passo-nomes">
+                        <span>${nos[noAtual].nome}</span>
+                        <i class="fas fa-arrow-right"></i>
+                        <span>${nos[proximoNo].nome}</span>
+                    </div>
+                    <div class="passo-dist">Distância: ${aresta.dist} km</div>
+                </div>
+                <div class="passo-status status-${statusClasse}">${statusTexto}</div>
+            </div>
+        `;
+
+        // Adicionar seta entre cartões (exceto no último)
+        if (index < resultado.caminho.length - 2) {
+            painel.innerHTML += `<div class="seta-baixo"><i class="fas fa-chevron-down"></i></div>`;
+        }
+    });
+
+    // Mensagem de alerta no painel
+    let estadoFinal = 'Caminho Seguro';
+    if (algumCortado) { estadoFinal = 'Atenção: Estrada Cortada no Percurso'; document.getElementById('res-estado').style.color = '#d32f2f'; }
+    else if (algumAlerta) { estadoFinal = 'Atenção: Estrada em Alerta'; document.getElementById('res-estado').style.color = '#f57f17'; }
+    else { document.getElementById('res-estado').style.color = '#2e7d32'; }
+
+    document.getElementById('res-estado').textContent = estadoFinal;
+}
+
+// ============================================================
+// SOCORRO
+// ============================================================
+function enviarSocorro() {
+    const local = document.getElementById('socorro-local').value.trim();
+    const msg = document.getElementById('socorro-msg').value.trim();
+    if (!local || !msg) { alert('Preencha local e mensagem.'); return; }
+    
+    pedidosSocorro.push({ id: Date.now(), local, msg });
+    document.getElementById('socorro-local').value = '';
+    document.getElementById('socorro-msg').value = '';
+    alert('Pedido de socorro enviado com sucesso!');
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+function abrirAdmin() { document.getElementById('modal-login').style.display = 'flex'; }
+function fecharAdmin() { document.getElementById('modal-login').style.display = 'none'; }
+function entrarAdmin() {
+    if (document.getElementById('admin-senha').value === 'admin123') {
+        adminLogado = true;
+        fecharAdmin();
+        document.getElementById('modal-painel').style.display = 'flex';
+    } else alert('Senha errada.');
+}
+function fecharPainel() { document.getElementById('modal-painel').style.display = 'none'; }
+function adminSair() { adminLogado = false; fecharPainel(); }
+
+function adminGerirCortes() {
+    document.getElementById('admin-conteudo').innerHTML = `
+        <div class="admin-lista">
+            ${arestas.map((a, i) => `<div class="admin-item">
+                <span>${nos[a.de].nome} ↔ ${nos[a.para].nome} (${a.dist}km)</span>
+                <div style="display:flex;gap:4px;">
+                    <button class="btn-abrir" onclick="setEstado(${i}, 'aberta')">Abrir</button>
+                    <button class="btn-alerta" onclick="setEstado(${i}, 'alerta')">Alerta</button>
+                    <button class="btn-cortar" onclick="setEstado(${i}, 'cortada')">Cortar</button>
+                </div>
+            </div>`).join('')}
+        </div>`;
+}
+
+function setEstado(idx, estado) {
+    estradasCortadas = estradasCortadas.filter(i => i !== idx);
+    estradasAlerta = estradasAlerta.filter(i => i !== idx);
+    if (estado === 'cortada') estradasCortadas.push(idx);
+    if (estado === 'alerta') estradasAlerta.push(idx);
+    alert('Estado da estrada atualizado!');
+    if (document.getElementById('cartao-resultado').classList.contains('ativo')) calcular();
+}
+
+function adminGerirAbrigos() {
+    const abrigos = Object.entries(nos).filter(([_, n]) => n.tipo === 'abrigo');
+    document.getElementById('admin-conteudo').innerHTML = `
+        <div class="admin-lista">
+            ${abrigos.map(([id, n]) => `<div class="admin-item">
+                <span>${n.nome}</span>
+                <button onclick="toggleAbrigo('${id}')" class="${n.ativo ? 'btn-cortar' : 'btn-abrir'}">${n.ativo ? 'Fechar' : 'Abrir'}</button>
+            </div>`).join('')}
+        </div>`;
+}
+
+function toggleAbrigo(id) {
+    nos[id].ativo = !nos[id].ativo;
+    adminGerirAbrigos();
+}
+
+function adminGerirSocorros() {
+    if (pedidosSocorro.length === 0) {
+        document.getElementById('admin-conteudo').innerHTML = '<p style="text-align:center;">Sem pedidos.</p>';
+        return;
+    }
+    document.getElementById('admin-conteudo').innerHTML = `
+        <div class="admin-lista">
+            ${pedidosSocorro.map(p => `<div class="admin-item" style="flex-direction:column;align-items:flex-start;">
+                <b style="color:#d32f2f;">${p.local}</b>
+                <span>${p.msg}</span>
+                <button class="btn-cortar" onclick="apagarSocorro(${p.id})" style="margin-top:5px;">Apagar</button>
+            </div>`).join('')}
+        </div>`;
+}
+
+function apagarSocorro(id) {
+    pedidosSocorro = pedidosSocorro.filter(p => p.id !== id);
+    adminGerirSocorros();
+}
+</script>
+
+</body>
+</html>
